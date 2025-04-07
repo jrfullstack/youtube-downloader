@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import ytdl from "ytdl-core";
 
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (err: unknown) {
     if (err instanceof Error) {
+      console.error("❌ Error in /api/info:", err.message, err.stack);
       return new Response(
         JSON.stringify({
           error: "Failed to fetch video info",
