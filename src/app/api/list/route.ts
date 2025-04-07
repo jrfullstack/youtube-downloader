@@ -28,7 +28,10 @@ export async function GET(req: Request) {
       }));
     } else {
       const channel = await ytsr(url, { pages: 5 });
-      const filtered = channel.items.filter((i: { type: string }) => i.type === "video");
+      const filtered = channel.items.filter(
+        (i: { type: string }) => i.type === "video"
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       videos = filtered.map((item: any) => ({
         title: item.title,
         url: item.url,
