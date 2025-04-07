@@ -1,59 +1,61 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import ytdl from "ytdl-core";
 
-function sanitizeFileName(name: string) {
-  return name.replace(/[\/\\?%*:|"<>]/g, "").trim(); // evita caracteres ilegales
-}
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const url = searchParams.get("url");
+  const formatId = searchParams.get("formatId");
+  const mediaType = searchParams.get("mediaType");
 
-export async function GET(req: NextRequest) {
-  const url = req.nextUrl.searchParams.get("url");
-  const type = req.nextUrl.searchParams.get("type") || "both";
+  if (!url) {
+    return NextResponse.json(
+      { error: "URL no proporcionada" },
+      { status: 400 }
+    );
+  }
 
-  if (!url || !ytdl.validateURL(url)) {
-    return new Response(JSON.stringify({ error: "Invalid URL" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
+  try {
+    const info = await ytdl.getInfo(url);
+    const title = info.videoDetails.title.replace(/[^\w\s]/gi, "_");
+
+    // Configurar las opciones de descarga
+    const options: ytdl.downloadOptions = {};
+
+    if (formatId) {
+      // Si se proporciona un ID de formato específico, usarlo
+      options.quality = formatId;
+    } else if (mediaType === "mp3") {
+      // Para MP3, obtener la mejor calidad de audio
+      options.quality = "highestaudio";
+      options.filter = "audioonly";
+    } else {
+      // Para MP4, obtener la mejor calidad de video con audio
+      options.quality = "highest";
+      options.filter = "audioandvideo";
+    }
+
+    // Crear el stream de descarga
+    const stream = ytdl(url, options);
+
+    // Configurar la respuesta
+    const headers = new Headers();
+    headers.set(
+      "Content-Disposition",
+      `attachment; filename="${title}.${mediaType === "mp3" ? "mp3" : "mp4"}"`
+    );
+    headers.set(
+      "Content-Type",
+      mediaType === "mp3" ? "audio/mpeg" : "video/mp4"
+    );
+
+    return new NextResponse(stream as unknown as ReadableStream, {
+      headers,
     });
+  } catch (error) {
+    console.error("Error al descargar:", error);
+    return NextResponse.json(
+      { error: "Error al procesar la descarga" },
+      { status: 500 }
+    );
   }
-
-  const info = await ytdl.getInfo(url);
-  const title = sanitizeFileName(info.videoDetails.title);
-
-  let format;
-  let extension = "mp4";
-
-  switch (type) {
-    case "audio":
-      format = ytdl.chooseFormat(info.formats, { quality: "highestaudio" });
-      extension = "mp3";
-      break;
-    case "video":
-      format = ytdl.chooseFormat(info.formats, { quality: "highestvideo" });
-      extension = "mp4";
-      break;
-    case "both":
-    default:
-      format = ytdl.chooseFormat(info.formats, { quality: "highest" });
-      extension = "mp4";
-      break;
-  }
-
-  const fileName = `${title}.${extension}`;
-
-  const headers = new Headers();
-  headers.set("Content-Disposition", `attachment; filename="${fileName}"`);
-  headers.set("Content-Type", format.mimeType || "application/octet-stream");
-
-  const nodeStream = ytdl.downloadFromInfo(info, { format });
-  const readableStream = new ReadableStream({
-    start(controller) {
-      nodeStream.on("data", (chunk) => controller.enqueue(chunk));
-      nodeStream.on("end", () => controller.close());
-      nodeStream.on("error", (err) => controller.error(err));
-    },
-  });
-
-  return new Response(readableStream, {
-    headers,
-  });
 }

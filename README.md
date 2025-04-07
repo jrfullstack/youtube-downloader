@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Aquí tienes un esquema detallado para la aplicación web que describes. Usaremos Next.js con ShadCN para la interfaz, y además implementaremos funcionalidades como:
 
-## Getting Started
+Descargar video individual, playlist o canal completo.
 
-First, run the development server:
+Opciones de descarga tanto en MP3 como en MP4.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Obtener y mostrar las opciones de calidad para cada archivo (audio/video).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Manejo eficiente de memoria para no saturar la aplicación.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Historial local con localStorage.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Usar el título del video como nombre de la descarga y ponerlo en mayúsculas (capitalize).
 
-## Learn More
+Plan de trabajo:
+Página principal (Home Page):
 
-To learn more about Next.js, take a look at the following resources:
+Entrada para el enlace del video/playlist/canal.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Opciones para elegir entre MP3 o MP4 y elegir calidad de descarga.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Mostrar las opciones de calidad para cada tipo de archivo (audio y video).
 
-## Deploy on Vercel
+Muestra de una miniatura del video, título y duración.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Botón de descarga.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Manejo de memoria para playlists y canales:
+
+Usaremos YTSR para manejar los videos de un canal.
+
+Usaremos YTPL para manejar playlists.
+
+Para playlists grandes, se implementará un mecanismo para dividir la carga y evitar el agotamiento de la memoria.
+
+Historial:
+
+El historial de descargas se almacenará en localStorage para que el usuario pueda ver qué videos ha descargado previamente.
+
+Backend API:
+
+Usaremos una API en Next.js para obtener los detalles del video (como el título, duración y miniatura) y para realizar las descargas.
+
+Codigo:
+Usar page.tsx como use server y que los client sean component y usar toda la logica de las peticiones en el use server
+recuerda q en el use server no se puede usar hooks
+
+recordar que estamos en typescript con eslint donde exige no usa el tipo any
